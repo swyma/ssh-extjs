@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+						http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+						http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	
+	<!-- 配置sessionFactory 
+	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="configLocation">
+			<value>classpath:hibernate.cfg.xml</value>
+		</property>
+	</bean>
+	-->
+	
+	<!-- 配置datasource -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="jdbc:mysql://localhost/mvc" />
+		<property name="user" value="root" />
+		<property name="password" value="123" />
+		<!-- 可以配置连接池 -->
+	</bean>
+	
+	<!-- 定义Hibernate的SessionFactory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="mappingResources">
+			<list>
+				<value>com/swyma/extssh/model/User.hbm.xml</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<value>
+				hibernate.dialect=org.hibernate.dialect.MySQLInnoDBDialect
+				hibernate.hbm2ddl.auto=update
+				hibernate.show_sql=true
+				hibernate.format_sql=false;
+			</value>
+		</property>
+	</bean>
+	
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory" />
+		</property>
+	</bean>
+	
+	<!-- 对事务管理器进行 -->
+	<tx:advice id="smAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!-- PROPAGATION_REQUIRED 如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。 -->
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="*" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 配置应用到类 -->
+	<aop:config>
+		<!-- execution配置到service层下 -->
+		<aop:pointcut id="smMethod" expression="execution(* com.swyma.extssh.service.*.*(..))*" />
+		<aop:advisor pointcut-ref="smMethod" advice-ref="smAdvice" />
+	</aop:config>
+	
+	<!-- 配置DAO层 -->
+	<bean id="userDao" class="com.swyma.extssh.dao.impl.UserDaoImpl">
+		<property name="sessionFactory">
+			<ref bean="sessionFactory"/>
+		</property>
+	</bean>
+	<!-- 配置Service层 -->
+	<bean id="userService" class="com.swyma.extssh.service.impl.UserServiceImpl">
+		<property name="userDao">
+			<ref bean="userDao"/>
+		</property>
+	</bean>
+	<!-- 配置Action层 -->
+	<bean id="loginAction" class="com.swyma.extssh.action.LoginAction" scope="prototype">
+		<property name="userService">
+			<ref bean="userService"/>
+		</property>
+	</bean>
+</beans>

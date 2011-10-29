@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping
+    PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="com.swyma.extssh.model.User" table="mvc_user">
+    	<id name="id" column="id">
+    		<generator class="uuid"></generator>
+    	</id>
+    	<property name="username" column="username" />
+    	<property name="password" column="password" />
+    	<property name="useremail" column="useremail" />
+    	<property name="usersex" column="usersex" />
+    	<property name="userage" column="userage" />
+    	<property name="school" column="school" />
+    	<property name="flag" column="flag" />
+    	
+    </class>
+
+</hibernate-mapping>
